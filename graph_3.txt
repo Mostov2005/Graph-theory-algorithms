@@ -3,9 +3,9 @@
 # vertices: A B C D E F G H I J
 
 A B 4
-A C 2
+A C 20
 B D 7
-C D 1
+C D 9
 D E 3
 E F 8
 F C 5
