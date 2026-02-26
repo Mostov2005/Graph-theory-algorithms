@@ -13,15 +13,16 @@ W = TypeVar("W", int, float, None)
 
 class Graph(Generic[V, W]):
     graph: Dict[V, Dict[V, Optional[W]]]
+
     def __init__(self, directed: bool = False,
                  weighted: bool = False,
                  filename: str = None,
-                 other: 'Graph[V, W]' = None):
+                 other_graph: 'Graph[V, W]' = None):
 
-        if other is not None:
-            self.directed = other.directed
-            self.weighted = other.weighted
-            self.graph = copy.deepcopy(other.graph)
+        if other_graph is not None:
+            self.directed = other_graph.directed
+            self.weighted = other_graph.weighted
+            self.graph = copy.deepcopy(other_graph.graph)
             return
 
         self.directed = directed
@@ -100,12 +101,20 @@ class Graph(Generic[V, W]):
 
     def remove_arc(self, node_1: V, node_2: V):
         """Удаление ребра"""
+        if node_1 not in self.graph:
+            raise ValueError("Нет вершины 1!")
+
+        if node_2 not in self.graph[node_1]:
+            raise ValueError("Нет ребра!")
+
         if node_1 in self.graph and node_2 in self.graph[node_1]:
             del self.graph[node_1][node_2]
+
         if not self.directed and node_2 in self.graph and node_1 in self.graph[node_2]:
             del self.graph[node_2][node_1]
 
     def print_graph(self):
+        print("Список смежности: ")
         print(self.graph)
 
     def display_graph(self):
@@ -118,7 +127,13 @@ class Graph(Generic[V, W]):
             print(line)
 
     def write_on_file(self, filename: str):
-        """Вывод в файл графа"""
+        """Вывод в файл графа
+        # Формат файлов
+        # type - directed|undirected - Ориентированный/Неориентированный
+        # weighted: yes|no
+        # vertices: перечисление вершин через пробел
+        # <список рёбер>
+        """
         directed = 'directed' if self.directed else 'undirected'
         weighted = 'yes' if self.weighted else 'no'
         vertices = ' '.join(self.graph.keys())
@@ -142,37 +157,48 @@ class Graph(Generic[V, W]):
 
 
 if __name__ == '__main__':
-    graph = Graph[int, int](directed=True, weighted=True)
+    graph = Graph[int, int](directed=False, weighted=True)
     graph.add_node(1)
     try:
         graph.add_node(1)
     except Exception as e:
         print("ИСКЛЮЧЕНИЕ:", e)
 
+    # graph.add_node("A")
+
     graph.add_node(3)
     graph.add_arc(1, 3, weight=5)
 
     graph.print_graph()
 
-    graph = Graph[str, int](directed=True, weighted=True)
+    print('\n2222222222\n')
+    graph_2 = Graph[str, int](directed=True, weighted=True)
 
     # добавляем вершины
-    graph.add_node("A")
-    graph.add_node("B")
-    graph.add_node("C")
+    graph_2.add_node("A")
+    graph_2.add_node("B")
+    graph_2.add_node("C")
 
     # добавляем дуги с весами
-    graph.add_arc("A", "B", weight=3)
-    graph.add_arc("B", "C", weight=5)
-    graph.add_arc("A", "C", weight=10)
+    graph_2.add_arc("A", "B", weight=3)
+    graph_2.add_arc("B", "C", weight=5)
+    graph_2.add_arc("A", "C", weight=10)
 
     # вывод графа
-    graph.print_graph()
-    graph.display_graph()
-
-    graph_2 = Graph(filename='graph_3.txt')
+    graph_2.print_graph()
     graph_2.display_graph()
-    graph_2.write_on_file('graph_write.txt')
 
-    graph_3_new = Graph(filename='graph_write.txt')
+    print('\n3333333\n')
+
+    print('Граф 3: ')
+    graph_3 = Graph(filename='graph_3.txt')
+    graph_3.display_graph()
+    graph_3.write_on_file('graph_write_3.txt')
+
+    print('\nГраф 3 после записи и считывания: ')
+    graph_3_new = Graph(filename='graph_write_3.txt')
     graph_3_new.display_graph()
+
+    print('\nГраф 3 после копирования: ')
+    graph_4 = Graph(other_graph=graph_3_new)
+    graph_4.display_graph()
