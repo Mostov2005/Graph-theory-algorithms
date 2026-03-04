@@ -155,6 +155,11 @@ class Graph(Generic[V, W]):
                     else:
                         f.write(f"{node} {neighbor}\n")
 
+    def out_degree(self, node: V) -> int:  # la Вывести полустепень исхода данной вершины орграфа
+        if node not in self.graph:
+            raise ValueError("Вершины нет в графе!")
+        return len(self.graph[node])
+
 
 if __name__ == '__main__':
     graph = Graph[int, int](directed=False, weighted=True)
@@ -202,3 +207,5 @@ if __name__ == '__main__':
     print('\nГраф 3 после копирования: ')
     graph_4 = Graph(other_graph=graph_3_new)
     graph_4.display_graph()
+
+    print(f'полустепень исхода: {graph_4.out_degree("C")}')

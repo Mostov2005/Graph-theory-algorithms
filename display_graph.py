@@ -13,7 +13,8 @@ class DisplayGraph:
             print("3. Удалить вершину")
             print("4. Добавить ребро")
             print("5. Удалить ребро")
-            print("6. Выход")
+            print("6. Полустепень исхода")
+            print("7. Выход")
 
             choice = input("Выберите действие: ")
 
@@ -51,6 +52,10 @@ class DisplayGraph:
                     self.graph.remove_arc(node1, node2)
 
                 elif choice == "6":
+                    node = input("Вершина: ")
+                    print(f'полустепень исхода: {self.graph.out_degree(node)}')
+
+                elif choice == "7":
                     print("Пока-Пока!")
                     break
 
