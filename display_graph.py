@@ -13,8 +13,9 @@ class DisplayGraph:
             print("3. Удалить вершину")
             print("4. Добавить ребро")
             print("5. Удалить ребро")
-            print("6. Полустепень исхода")
-            print("7. Выход")
+            print("6. Вывести  полустепень исхода данной вершины")
+            print('7. Вывести все вершины орграфа, смежные с данной')
+            print("8. Выход")
 
             choice = input("Выберите действие: ")
 
@@ -56,6 +57,10 @@ class DisplayGraph:
                     print(f'полустепень исхода: {self.graph.out_degree(node)}')
 
                 elif choice == "7":
+                    node = input("Вершина: ")
+                    print(f'Вершины смежные с {node}: {self.graph.neighbors(node)}')
+
+                elif choice == "8":
                     print("Пока-Пока!")
                     break
 

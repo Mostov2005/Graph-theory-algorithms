@@ -160,6 +160,12 @@ class Graph(Generic[V, W]):
             raise ValueError("Вершины нет в графе!")
         return len(self.graph[node])
 
+    def neighbors(self, node: V):
+        if node not in self.graph:
+            raise ValueError("Вершины нет в графе!")
+        # В ориентированном графе вершина у смежна с вершиной х, если существует дуга (x, y)
+        return list(self.graph[node].keys())
+
 
 if __name__ == '__main__':
     graph = Graph[int, int](directed=False, weighted=True)
@@ -205,7 +211,11 @@ if __name__ == '__main__':
     graph_3_new.display_graph()
 
     print('\nГраф 3 после копирования: ')
-    graph_4 = Graph(other_graph=graph_3_new)
+    graph_3_copy = Graph(other_graph=graph_3_new)
+    graph_3_copy.display_graph()
+
+    graph_4 = Graph(filename='graph_4.txt')
     graph_4.display_graph()
 
-    print(f'полустепень исхода: {graph_4.out_degree("C")}')
+    print(f'Полустепень исхода: {graph_4.out_degree("V3")}')
+    print(f'Вершины смежные с данной: {graph_4.neighbors("V3")}')
