@@ -166,6 +166,30 @@ class Graph(Generic[V, W]):
         # В ориентированном графе вершина у смежна с вершиной х, если существует дуга (x, y)
         return list(self.graph[node].keys())
 
+    def remove_pendant_vertices(self):  # lb 12 Удаление висячих вершин
+        new_graph = Graph(other_graph=self)
+
+        if not self.directed:
+            pendant = [
+                v for v in self.graph
+                if len(self.graph[v]) == 1 and v not in self.graph[v]
+            ]
+        else:
+            indeg = {v: 0 for v in self.graph}
+
+            for u in self.graph:
+                for v in self.graph[u]:
+                    indeg[v] += 1
+
+            pendant = [
+                v for v in self.graph
+                if indeg[v] + len(self.graph[v]) == 1
+            ]
+        for v in pendant:
+            new_graph.remove_node(v)
+
+        return new_graph
+
 
 if __name__ == '__main__':
     graph = Graph[int, int](directed=False, weighted=True)
@@ -219,3 +243,9 @@ if __name__ == '__main__':
 
     print(f'Полустепень исхода: {graph_4.out_degree("V3")}')
     print(f'Вершины смежные с данной: {graph_4.neighbors("V3")}')
+
+    graph_3.remove_pendant_vertices()
+    graph_4.remove_pendant_vertices()
+    graph_3.display_graph()
+    graph_4.display_graph()
+

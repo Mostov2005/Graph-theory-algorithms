@@ -14,8 +14,9 @@ class DisplayGraph:
             print("4. Добавить ребро")
             print("5. Удалить ребро")
             print("6. Вывести  полустепень исхода данной вершины")
-            print('7. Вывести все вершины орграфа, смежные с данной')
-            print("8. Выход")
+            print('7. Вывести все вершины, смежные с данной')
+            print('8. Удалить висячие вершины')
+            print("9. Выход")
 
             choice = input("Выберите действие: ")
 
@@ -61,6 +62,10 @@ class DisplayGraph:
                     print(f'Вершины смежные с {node}: {self.graph.neighbors(node)}')
 
                 elif choice == "8":
+                    self.graph = self.graph.remove_pendant_vertices()
+                    print('Висячие вершины удалены!')
+
+                elif choice == "9":
                     print("Пока-Пока!")
                     break
 
@@ -74,6 +79,6 @@ class DisplayGraph:
 
 
 if __name__ == '__main__':
-    graph = Graph(filename='graph_4.txt')
+    graph = Graph(filename='graph_3.txt')
     display_graph = DisplayGraph(graph)
     display_graph.run()
