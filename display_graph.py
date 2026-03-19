@@ -18,7 +18,8 @@ class DisplayGraph:
             print('8. Удалить висячие вершины')
             print("9. Определить, можно ли добиться того, чтобы" +
                   " из вершины u нельзя было попасть в вершину v, закрыв заданные k рёбер")
-            print("10. Выход")
+            print("10. Вывести кратчайший цикл орграфа, содержащий вершину u.")
+            print("999. Выход")
 
             choice = input("Выберите действие: ")
 
@@ -78,6 +79,14 @@ class DisplayGraph:
                         print('Достичь можно!')
 
                 elif choice == "10":
+                    node_u = input("Вершина u: ")
+                    cycle = graph.short_cycle(node_u)
+                    if cycle is not None:
+                        print(" -> ".join(cycle))
+                    else:
+                        print("Нет цикла!")
+
+                elif choice == "999":
                     print("Пока-Пока!")
                     break
 
@@ -91,6 +100,6 @@ class DisplayGraph:
 
 
 if __name__ == '__main__':
-    graph = Graph(filename='graph_5.txt')
+    graph = Graph(filename='graph_6.txt')
     display_graph = DisplayGraph(graph)
     display_graph.run()

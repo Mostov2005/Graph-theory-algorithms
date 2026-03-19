@@ -213,16 +213,15 @@ class Graph(Generic[V, W]):
             visited.add(node)
             for neighbor in self.graph[node]:
                 if neighbor not in visited and neighbor not in queue:
+                    # print(neighbor)
                     queue.append(neighbor)
         return visited
-
-    from itertools import combinations
-    from typing import List, Tuple
 
     def can_disconnect(self, u: V, v: V) -> bool:
         """
         Проверяет, можно ли закрыть k рёбер,
         чтобы из u нельзя было попасть в v - Задача 5
+        Использует обход в глубину
         """
         if u not in self.graph or v not in self.graph:
             raise ValueError("u или v нет в графе")
@@ -253,19 +252,60 @@ class Graph(Generic[V, W]):
 
         return False
 
+    def short_cycle(self, node_u):
+        """
+        Вывести кратчайший (по числу дуг) цикл орграфа
+        содержащий вершину u.
+        Использует обход в ширину
+        """
 
+        def bfs_with_parent(start: V):
+            visited = {start}
+            parent = {start: None}
+            queue = deque([start])
 
+            while queue:
+                node = queue.popleft()
+                for neighbor in self.graph[node]:
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        parent[neighbor] = node
+                        queue.append(neighbor)
+
+            return parent
+
+        if node_u not in self.graph:
+            raise ValueError("Вершины нет в графе!")
+
+        parent = bfs_with_parent(node_u)
+        # print(parent)
+
+        for v in parent:
+            if v != node_u and node_u in self.graph[v]: # Если указывает на u
+                # нашли цикл
+                path = []
+                node = v
+                while node is not None:
+                    path.append(node)
+                    node = parent[node]
+
+                path.reverse()
+                path.append(node_u)
+                return path
+
+        return None
 
 
 if __name__ == '__main__':
-    graph_5 = Graph(filename='graph_5.txt')
-    graph_5.display_graph()
-    print('Обход в глубину:')
-    a = graph_5.dfs("A")
-    print(a)
-    # print('\nОбход в глубину:')
-    # b = graph_5.bfs("A")
+    graph_6 = Graph(filename='graph_6.txt')
+    # graph_6.display_graph()
+
+    # print('\nОбход в Ширину:')
+    # b = graph_6.bfs("A")
     # print(b)
 
-    can = graph_5.can_disconnect("A", "E")
-    print(can)
+    cycle = graph_6.short_cycle("A")
+    print(cycle)
+
+    # can = graph_5.can_disconnect("A", "E")
+    # print(can)
