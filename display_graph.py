@@ -16,7 +16,9 @@ class DisplayGraph:
             print("6. Вывести  полустепень исхода данной вершины")
             print('7. Вывести все вершины, смежные с данной')
             print('8. Удалить висячие вершины')
-            print("9. Выход")
+            print("9. Определить, можно ли добиться того, чтобы" +
+                  " из вершины u нельзя было попасть в вершину v, закрыв заданные k рёбер")
+            print("10. Выход")
 
             choice = input("Выберите действие: ")
 
@@ -66,6 +68,16 @@ class DisplayGraph:
                     print('Висячие вершины удалены!')
 
                 elif choice == "9":
+                    node1 = input("Откуда: ")
+                    node2 = input("Куда: ")
+                    self.graph = self.graph.remove_pendant_vertices()
+                    can = self.graph.can_disconnect(node1, node2)
+                    if can:
+                        print('Достичь нельзя!')
+                    else:
+                        print('Достичь можно!')
+
+                elif choice == "10":
                     print("Пока-Пока!")
                     break
 
@@ -79,6 +91,6 @@ class DisplayGraph:
 
 
 if __name__ == '__main__':
-    graph = Graph(filename='graph_3.txt')
+    graph = Graph(filename='graph_5.txt')
     display_graph = DisplayGraph(graph)
     display_graph.run()

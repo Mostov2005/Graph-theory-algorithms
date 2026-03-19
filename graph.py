@@ -1,5 +1,7 @@
 import copy
-from typing import Dict, Optional, TypeVar, Generic
+from typing import Dict, Optional, TypeVar, Generic, List, Tuple
+from collections import deque
+from itertools import combinations
 
 # Формат файлов
 # type - directed|undirected - Ориентированный/Неориентированный
@@ -62,6 +64,7 @@ class Graph(Generic[V, W]):
             if self.weighted and len(parts) > 2:
                 weight = float(parts[2]) if "." in parts[2] else int(parts[2])
 
+            # print(node1, node2)
             self.add_arc(node1, node2, weight)
 
     def add_node(self, node: V):
@@ -190,62 +193,79 @@ class Graph(Generic[V, W]):
 
         return new_graph
 
+    def dfs(self, start: V, visited=None):  # Обход в глубину
+        if visited is None:
+            visited = set()
+        print(start)
+        visited.add(start)
+
+        for neighbor in self.graph[start]:
+            if neighbor not in visited:
+                self.dfs(neighbor, visited)
+        return visited
+
+    def bfs(self, start: V):  # Обход в ширину
+        visited = set()
+        queue = deque([start])
+        while queue:
+            node = queue.popleft()
+            print(node)
+            visited.add(node)
+            for neighbor in self.graph[node]:
+                if neighbor not in visited and neighbor not in queue:
+                    queue.append(neighbor)
+        return visited
+
+    from itertools import combinations
+    from typing import List, Tuple
+
+    def can_disconnect(self, u: V, v: V) -> bool:
+        """
+        Проверяет, можно ли закрыть k рёбер,
+        чтобы из u нельзя было попасть в v - Задача 5
+        """
+        if u not in self.graph or v not in self.graph:
+            raise ValueError("u или v нет в графе")
+
+        temp_graph = Graph(other_graph=self)
+        while True:
+            print("0. Хватит удалять")
+            print("1. Удалить ребро")
+            choice = input("Выберите действие: ")
+            try:
+                if choice == "0":
+                    break
+                elif choice == "1":
+                    node1 = input("Откуда: ")
+                    node2 = input("Куда: ")
+                    temp_graph.remove_arc(node1, node2)
+                else:
+                    print("Неверный выбор!")
+
+                print()
+            except Exception as e:
+                print("Ошибка:", e)
+
+        visited = temp_graph.dfs(u)
+
+        if v not in visited:
+            return True
+
+        return False
+
+
+
+
 
 if __name__ == '__main__':
-    graph = Graph[int, int](directed=False, weighted=True)
-    graph.add_node(1)
-    try:
-        graph.add_node(1)
-    except Exception as e:
-        print("ИСКЛЮЧЕНИЕ:", e)
+    graph_5 = Graph(filename='graph_5.txt')
+    graph_5.display_graph()
+    print('Обход в глубину:')
+    a = graph_5.dfs("A")
+    print(a)
+    # print('\nОбход в глубину:')
+    # b = graph_5.bfs("A")
+    # print(b)
 
-    # graph.add_node("A")
-
-    graph.add_node(3)
-    graph.add_arc(1, 3, weight=5)
-
-    graph.print_graph()
-
-    print('\n2222222222\n')
-    graph_2 = Graph[str, int](directed=True, weighted=True)
-
-    # добавляем вершины
-    graph_2.add_node("A")
-    graph_2.add_node("B")
-    graph_2.add_node("C")
-
-    # добавляем дуги с весами
-    graph_2.add_arc("A", "B", weight=3)
-    graph_2.add_arc("B", "C", weight=5)
-    graph_2.add_arc("A", "C", weight=10)
-
-    # вывод графа
-    graph_2.print_graph()
-    graph_2.display_graph()
-
-    print('\n3333333\n')
-
-    print('Граф 3: ')
-    graph_3 = Graph(filename='graph_3.txt')
-    graph_3.display_graph()
-    graph_3.write_on_file('graph_write_3.txt')
-
-    print('\nГраф 3 после записи и считывания: ')
-    graph_3_new = Graph(filename='graph_write_3.txt')
-    graph_3_new.display_graph()
-
-    print('\nГраф 3 после копирования: ')
-    graph_3_copy = Graph(other_graph=graph_3_new)
-    graph_3_copy.display_graph()
-
-    graph_4 = Graph(filename='graph_4.txt')
-    graph_4.display_graph()
-
-    print(f'Полустепень исхода: {graph_4.out_degree("V3")}')
-    print(f'Вершины смежные с данной: {graph_4.neighbors("V3")}')
-
-    graph_3.remove_pendant_vertices()
-    graph_4.remove_pendant_vertices()
-    graph_3.display_graph()
-    graph_4.display_graph()
-
+    can = graph_5.can_disconnect("A", "E")
+    print(can)
