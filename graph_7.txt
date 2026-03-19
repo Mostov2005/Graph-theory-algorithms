@@ -1,0 +1,7 @@
+# type: undirected
+# weighted: yes
+# vertices: A B C
+
+A B 2
+A C 3
+B C 1

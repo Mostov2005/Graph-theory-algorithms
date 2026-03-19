@@ -1,0 +1,11 @@
+# type: undirected
+# weighted: yes
+# vertices: A B C D E
+
+A B 2
+A C 3
+B C 1
+B D 4
+C D 5
+C E 6
+D E 2

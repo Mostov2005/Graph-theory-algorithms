@@ -278,11 +278,10 @@ class Graph(Generic[V, W]):
             raise ValueError("Вершины нет в графе!")
 
         parent = bfs_with_parent(node_u)
-        # print(parent)
+        print(parent)
 
         for v in parent:
-            if v != node_u and node_u in self.graph[v]: # Если указывает на u
-                # нашли цикл
+            if v != node_u and node_u in self.graph[v]:  # Если указывает на u
                 path = []
                 node = v
                 while node is not None:
@@ -295,17 +294,77 @@ class Graph(Generic[V, W]):
 
         return None
 
+    def find_skeleton_krascal(self):
+        """
+        Возвращает минимальный каркас графа c помощью алгоритма Краскала
+        """
+        if not self.graph:
+            return [], 0
+
+        # Собираем все рёбра с весами
+        edges = []
+        for u in self.graph:
+            for v, w in self.graph[u].items():
+                if not self.directed:
+                    if (v, u, w) in edges:  # чтобы не дублировать ребра
+                        continue
+                edges.append((u, v, w))
+
+        edges.sort(key=lambda x: x[2])
+        print(edges)
+
+        # DSU для проверки циклов
+        parent = {v: v for v in self.graph}
+
+        def find(u):  # Поиск корня
+            while parent[u] != u:
+                parent[u] = parent[parent[u]]
+                u = parent[u]
+            return u
+
+        def union(u, v):
+            pu, pv = find(u), find(v)
+            if pu == pv:
+                return False  # уже соединены => будет цикл
+            parent[pu] = pv
+            return True
+
+        # Построение MST
+        mst_edges = []
+        total_weight = 0
+
+        for u, v, w in edges:
+            if union(u, v):
+                mst_edges.append((u, v, w))
+                total_weight += w
+            if len(mst_edges) == len(self.graph) - 1:
+                break
+
+        return mst_edges, total_weight
+
 
 if __name__ == '__main__':
-    graph_6 = Graph(filename='graph_6.txt')
+    # graph_6 = Graph(filename='graph_6.txt')
     # graph_6.display_graph()
-
+    #
     # print('\nОбход в Ширину:')
     # b = graph_6.bfs("A")
-    # print(b)
+    # # print(b)
+    #
+    # print('\nПоиск цикла:')
+    # cycle = graph_6.short_cycle("A")
+    # print(cycle)
 
-    cycle = graph_6.short_cycle("A")
-    print(cycle)
+    graph_7 = Graph(filename='graph_7.txt')
+    mst, weight = graph_7.find_skeleton_krascal()
+    print("Минимальный каркас:")
+    for u, v, w in mst:
+        print(f"{u} — {v} ({w})")
+    print("Общий вес:", weight)
 
-    # can = graph_5.can_disconnect("A", "E")
-    # print(can)
+    graph_8 = Graph(filename='graph_8.txt')
+    mst, weight = graph_8.find_skeleton_krascal()
+    print("Минимальный каркас:")
+    for u, v, w in mst:
+        print(f"{u} — {v} ({w})")
+    print("Общий вес:", weight)
