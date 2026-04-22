@@ -19,6 +19,7 @@ class DisplayGraph:
             print("9. Определить, можно ли добиться того, чтобы" +
                   " из вершины u нельзя было попасть в вершину v, закрыв заданные k рёбер")
             print("10. Вывести кратчайший цикл орграфа, содержащий вершину u.")
+            print('11. Вывести кратчайшие пути до вершины u из всех остальных вершин (Дейстра, задание 8)')
             print("999. Выход")
 
             choice = input("Выберите действие: ")
@@ -86,6 +87,14 @@ class DisplayGraph:
                     else:
                         print("Нет цикла!")
 
+                elif choice == "11":
+                    node_u = input("Вершина u: ")
+                    rev = self.graph.reverse()
+                    dist = rev.dijkstra(node_u)
+                    print(f"Кратчайшие пути до вершины {node_u}:")
+                    for v, d in dist.items():
+                        print(f"{v}: {d}")
+
                 elif choice == "999":
                     print("Пока-Пока!")
                     break
@@ -100,6 +109,6 @@ class DisplayGraph:
 
 
 if __name__ == '__main__':
-    graph = Graph(filename='graph_6.txt')
+    graph = Graph(filename='graph_4.txt')
     display_graph = DisplayGraph(graph)
     display_graph.run()

@@ -1,4 +1,5 @@
 import copy
+import heapq
 from typing import Dict, Optional, TypeVar, Generic, List, Tuple
 from collections import deque
 from itertools import combinations
@@ -342,29 +343,68 @@ class Graph(Generic[V, W]):
 
         return mst_edges, total_weight
 
+    def reverse(self):
+        new_graph = Graph(directed=self.directed, weighted=self.weighted)
+
+        for v in self.graph:
+            new_graph.add_node(v)
+
+        for u in self.graph:
+            for v, w in self.graph[u].items():
+                new_graph.add_arc(v, u, w)
+
+        return new_graph
+
+    def dijkstra(self, start: V) -> Dict[V, float]:
+        """
+        Алгоритм Дейкстры: кратчайшие пути от вершины start до всех остальных
+        Работает только для взвешенного графа с неотрицательными весами
+        """
+
+        if start not in self.graph:
+            raise ValueError("Стартовой вершины нет в графе!")
+
+        # Проверка на отрицательные веса
+        for u in self.graph:
+            for v in self.graph[u]:
+                if self.graph[u][v] < 0:
+                    raise ValueError("Граф содержит отрицательные веса!")
+
+
+        # Инициализация
+        dist = {v: float('inf') for v in self.graph}
+        dist[start] = 0
+
+        priority_queue = [(0, start)]  # (расстояние, вершина)
+
+        while priority_queue:
+            current_dist, u = heapq.heappop(priority_queue)
+
+            # Если уже нашли лучше — пропускаем
+            if current_dist > dist[u]:
+                continue
+
+            for v, weight in self.graph[u].items():
+                new_dist = dist[u] + weight
+
+                # relax(u, v)
+                if new_dist < dist[v]:
+                    dist[v] = new_dist
+                    heapq.heappush(priority_queue, (new_dist, v))
+
+        return dist
+
 
 if __name__ == '__main__':
-    # graph_6 = Graph(filename='graph_6.txt')
-    # graph_6.display_graph()
-    #
-    # print('\nОбход в Ширину:')
-    # b = graph_6.bfs("A")
-    # # print(b)
-    #
-    # print('\nПоиск цикла:')
-    # cycle = graph_6.short_cycle("A")
-    # print(cycle)
-
-    graph_7 = Graph(filename='graph_7.txt')
-    mst, weight = graph_7.find_skeleton_krascal()
-    print("Минимальный каркас:")
-    for u, v, w in mst:
-        print(f"{u} — {v} ({w})")
-    print("Общий вес:", weight)
-
     graph_8 = Graph(filename='graph_8.txt')
-    mst, weight = graph_8.find_skeleton_krascal()
-    print("Минимальный каркас:")
-    for u, v, w in mst:
-        print(f"{u} — {v} ({w})")
-    print("Общий вес:", weight)
+    d8 = graph_8.dijkstra("A")
+    print(d8)
+
+
+    graph_4 = Graph(filename='graph_4.txt')
+    d = graph_4.dijkstra('V2')
+    res = graph_4.reverse()
+    print(d)
+
+    dr = res.dijkstra('V2')
+    print(dr)
