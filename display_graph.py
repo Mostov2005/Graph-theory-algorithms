@@ -20,6 +20,7 @@ class DisplayGraph:
                   " из вершины u нельзя было попасть в вершину v, закрыв заданные k рёбер")
             print("10. Вывести кратчайший цикл орграфа, содержащий вершину u.")
             print('11. Вывести кратчайшие пути до вершины u из всех остальных вершин (Дейстра, задание 8)')
+            print('12. Вывести кратчайший путь из вершины u до вершины v (Флойда, задание 9)')
             print("999. Выход")
 
             choice = input("Выберите действие: ")
@@ -94,6 +95,17 @@ class DisplayGraph:
                     print(f"Кратчайшие пути до вершины {node_u}:")
                     for v, d in dist.items():
                         print(f"{v}: {d}")
+
+                elif choice == "12":
+                    node_u = input("Вершина u: ")
+                    node_v = input("Вершина v: ")
+                    vertices, dist, next_node = self.graph.floyd_warshall()
+                    path = self.graph.get_path(node_u, node_v, vertices, next_node)
+                    if path is not None:
+                        print("Путь:", path)
+                        print("Длина:", dist[vertices.index(node_u)][vertices.index(node_v)])
+                    else:
+                        print('Нет пути!')
 
                 elif choice == "999":
                     print("Пока-Пока!")

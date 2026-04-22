@@ -370,7 +370,6 @@ class Graph(Generic[V, W]):
                 if self.graph[u][v] < 0:
                     raise ValueError("Граф содержит отрицательные веса!")
 
-
         # Инициализация
         dist = {v: float('inf') for v in self.graph}
         dist[start] = 0
@@ -394,17 +393,85 @@ class Graph(Generic[V, W]):
 
         return dist
 
+    def get_path(self, u, v, vertices, next_node):
+        if u not in vertices or v not in vertices:
+            raise ValueError("Нет вершины")
+
+        index = {v: i for i, v in enumerate(vertices)}
+
+        i, j = index[u], index[v]
+
+        if next_node[i][j] is None:
+            return None  # пути нет
+
+        path = [u]
+        while u != v:
+            u = next_node[index[u]][j]
+            path.append(u)
+
+        return path
+
+    def floyd_warshall(self):
+        """
+        Алгоритм Флойда–Уоршелла
+        Возвращает:
+        dist[i][j] — кратчайшие расстояния
+        next[i][j] — для восстановления пути
+        """
+
+        vertices = list(self.graph.keys())
+        n = len(vertices)
+
+        # Индексы вершин
+        index = {v: i for i, v in enumerate(vertices)}
+
+        # Матрицы
+        dist = [[float('inf')] * n for _ in range(n)]
+        next_node = [[None] * n for _ in range(n)]
+
+        # Инициализация
+        for v in vertices:
+            dist[index[v]][index[v]] = 0
+
+        for u in self.graph:
+            for v, w in self.graph[u].items():
+                i, j = index[u], index[v]
+                dist[i][j] = w
+                next_node[i][j] = v
+
+        # Основной алгоритм
+        for k in range(n):
+            for i in range(n):
+                for j in range(n):
+                    if dist[i][k] + dist[k][j] < dist[i][j]:
+                        dist[i][j] = dist[i][k] + dist[k][j]
+                        next_node[i][j] = next_node[i][k]
+
+        return vertices, dist, next_node
+
 
 if __name__ == '__main__':
-    graph_8 = Graph(filename='graph_8.txt')
-    d8 = graph_8.dijkstra("A")
-    print(d8)
+    # graph_8 = Graph(filename='graph_8.txt')
+    # d8 = graph_8.dijkstra("A")
+    # print(d8)
+    #
+    # graph_4 = Graph(filename='graph_4.txt')
+    # d = graph_4.dijkstra('V2')
+    # res = graph_4.reverse()
+    # print(d)
+    #
+    # dr = res.dijkstra('V2')
+    # print(dr)
+    graph_floyd = Graph(filename='graph_8.txt')
+    vertices, dist, next_node = graph_floyd.floyd_warshall()
+    print(vertices)
+    print(dist)
+    print(next_node)
 
+    u = "A"
+    v = "D"
 
-    graph_4 = Graph(filename='graph_4.txt')
-    d = graph_4.dijkstra('V2')
-    res = graph_4.reverse()
-    print(d)
+    path = graph_floyd.get_path(u, v, vertices, next_node)
 
-    dr = res.dijkstra('V2')
-    print(dr)
+    print("Путь:", path)
+    print("Длина:", dist[vertices.index(u)][vertices.index(v)])
