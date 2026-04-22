@@ -449,6 +449,56 @@ class Graph(Generic[V, W]):
 
         return vertices, dist, next_node
 
+    def bellman_ford_negative_cycle(self):
+        """
+        Находит отрицательный цикл, если он есть.
+        Возвращает список вершин цикла или None.
+        """
+
+        vertices = list(self.graph.keys())
+        dist = {v: 0 for v in vertices}  # 0, а не inf
+        parent = {v: None for v in vertices}
+
+        edges = []
+        for u in self.graph:
+            for v, w in self.graph[u].items():
+                edges.append((u, v, w)) # Список ребёр
+
+        # |V| - 1 релаксаций
+        for _ in range(len(vertices) - 1):
+            for u, v, w in edges:
+                if dist[u] + w < dist[v]:
+                    dist[v] = dist[u] + w
+                    parent[v] = u
+
+        # Проверка на цикл (Если послер релаксаций можно уменьшить => есть отрицательный цикл
+        cycle_vertex = None
+
+        for u, v, w in edges:
+            if dist[u] + w < dist[v]:
+                cycle_vertex = v
+                break
+
+        if cycle_vertex is None:
+            return None  # цикла нет
+
+        # Восстановление цикла
+        for _ in range(len(vertices)):
+            cycle_vertex = parent[cycle_vertex]
+
+        # теперь точно внутри цикла
+        cycle = []
+        cur = cycle_vertex
+
+        while True:
+            cycle.append(cur)
+            cur = parent[cur]
+            if cur == cycle_vertex and len(cycle) > 1:
+                break
+
+        cycle.reverse()
+        return cycle
+
 
 if __name__ == '__main__':
     # graph_8 = Graph(filename='graph_8.txt')
@@ -462,16 +512,21 @@ if __name__ == '__main__':
     #
     # dr = res.dijkstra('V2')
     # print(dr)
-    graph_floyd = Graph(filename='graph_8.txt')
-    vertices, dist, next_node = graph_floyd.floyd_warshall()
-    print(vertices)
-    print(dist)
-    print(next_node)
 
-    u = "A"
-    v = "D"
+    # graph_floyd = Graph(filename='graph_8.txt')
+    # vertices, dist, next_node = graph_floyd.floyd_warshall()
+    # print(vertices)
+    # print(dist)
+    # print(next_node)
+    #
+    # u = "A"
+    # v = "D"
+    #
+    # path = graph_floyd.get_path(u, v, vertices, next_node)
+    #
+    # print("Путь:", path)
+    # print("Длина:", dist[vertices.index(u)][vertices.index(v)])
 
-    path = graph_floyd.get_path(u, v, vertices, next_node)
-
-    print("Путь:", path)
-    print("Длина:", dist[vertices.index(u)][vertices.index(v)])
+    graph_negative = Graph(filename='graph_9.txt')
+    cycle = graph_negative.bellman_ford_negative_cycle()
+    print(cycle)

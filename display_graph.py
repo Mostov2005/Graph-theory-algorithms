@@ -21,6 +21,7 @@ class DisplayGraph:
             print("10. Вывести кратчайший цикл орграфа, содержащий вершину u.")
             print('11. Вывести кратчайшие пути до вершины u из всех остальных вершин (Дейстра, задание 8)')
             print('12. Вывести кратчайший путь из вершины u до вершины v (Флойда, задание 9)')
+            print('13. Вывести цикл отрицательного веса, если он есть (Беллмана-Форда, задание 10)')
             print("999. Выход")
 
             choice = input("Выберите действие: ")
@@ -106,6 +107,14 @@ class DisplayGraph:
                         print("Длина:", dist[vertices.index(node_u)][vertices.index(node_v)])
                     else:
                         print('Нет пути!')
+
+
+                elif choice == "13":
+                    cycle = self.graph.bellman_ford_negative_cycle()
+                    if cycle is not None:
+                        print(" -> ".join(cycle))
+                    else:
+                        print("Нет отрицательного цикла!")
 
                 elif choice == "999":
                     print("Пока-Пока!")
