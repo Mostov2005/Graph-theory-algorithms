@@ -130,6 +130,6 @@ class DisplayGraph:
 
 
 if __name__ == '__main__':
-    graph = Graph(filename='graph_4.txt')
+    graph = Graph(filename='graph_9.txt')
     display_graph = DisplayGraph(graph)
     display_graph.run()

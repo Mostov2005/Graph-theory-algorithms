@@ -433,6 +433,7 @@ class Graph(Generic[V, W]):
         for v in vertices:
             dist[index[v]][index[v]] = 0
 
+        # Заполнение ребёр
         for u in self.graph:
             for v, w in self.graph[u].items():
                 i, j = index[u], index[v]
@@ -462,7 +463,7 @@ class Graph(Generic[V, W]):
         edges = []
         for u in self.graph:
             for v, w in self.graph[u].items():
-                edges.append((u, v, w)) # Список ребёр
+                edges.append((u, v, w))  # Список ребёр
 
         # |V| - 1 релаксаций
         for _ in range(len(vertices) - 1):
@@ -501,17 +502,17 @@ class Graph(Generic[V, W]):
 
 
 if __name__ == '__main__':
-    # graph_8 = Graph(filename='graph_8.txt')
-    # d8 = graph_8.dijkstra("A")
-    # print(d8)
-    #
-    # graph_4 = Graph(filename='graph_4.txt')
-    # d = graph_4.dijkstra('V2')
-    # res = graph_4.reverse()
-    # print(d)
-    #
-    # dr = res.dijkstra('V2')
-    # print(dr)
+    graph_8 = Graph(filename='graph_8.txt')
+    d8 = graph_8.dijkstra("A")
+    print(d8)
+
+    graph_4 = Graph(filename='graph_4.txt')
+    d = graph_4.dijkstra('V2')
+    res = graph_4.reverse()
+    print(d)
+
+    dr = res.dijkstra('V2')
+    print(dr)
 
     # graph_floyd = Graph(filename='graph_8.txt')
     # vertices, dist, next_node = graph_floyd.floyd_warshall()
@@ -520,13 +521,13 @@ if __name__ == '__main__':
     # print(next_node)
     #
     # u = "A"
-    # v = "D"
+    # v = "E"
     #
     # path = graph_floyd.get_path(u, v, vertices, next_node)
     #
     # print("Путь:", path)
     # print("Длина:", dist[vertices.index(u)][vertices.index(v)])
 
-    graph_negative = Graph(filename='graph_9.txt')
-    cycle = graph_negative.bellman_ford_negative_cycle()
-    print(cycle)
+    # graph_negative = Graph(filename='graph_9.txt')
+    # cycle = graph_negative.bellman_ford_negative_cycle()
+    # print(cycle)
