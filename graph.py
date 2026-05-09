@@ -500,34 +500,111 @@ class Graph(Generic[V, W]):
         cycle.reverse()
         return cycle
 
+    def bfs_edges(self, start):
+        if start not in self.graph:
+            raise ValueError("Нет вершины")
+
+        visited = set([start])
+        queue = deque([start])
+
+        edges = []
+
+        while queue:
+            u = queue.popleft()
+
+            for v in self.graph[u]:
+                if v not in visited:
+                    visited.add(v)
+                    queue.append(v)
+                    edges.append((u, v))
+
+        return edges
+
+    def dfs_edges(self, start):
+        if start not in self.graph:
+            raise ValueError("Нет вершины")
+
+        visited = set()
+        edges = []
+
+        def dfs(u):
+            visited.add(u)
+            for v in self.graph[u]:
+                if v not in visited:
+                    edges.append((u, v))
+                    dfs(v)
+
+        dfs(start)
+        return edges
+
+    from collections import deque
+    import copy
+
+    def edmonds_karp(self, source, sink):
+        if source not in self.graph or sink not in self.graph:
+            raise ValueError("Источник или сток отсутствует")
+
+        # строим residual graph
+        residual = copy.deepcopy(self.graph)
+
+        # если нет обратных рёбер — добавляем
+        for u in list(residual.keys()):
+            for v in list(residual[u].keys()):
+                if v not in residual:
+                    residual[v] = {}
+                if u not in residual[v]:
+                    residual[v][u] = 0
+
+        def bfs():
+            parent = {source: None}
+            queue = deque([source])
+
+            while queue:
+                u = queue.popleft()
+
+                for v, cap in residual[u].items():
+                    if v not in parent and cap > 0:
+                        parent[v] = u
+                        if v == sink:
+                            return parent
+                        queue.append(v)
+
+            return None
+
+        max_flow = 0
+
+        while True:
+            parent = bfs()
+            if not parent:
+                break
+
+            # ищем bottleneck
+            path_flow = float('inf')
+            v = sink
+
+            while v != source:
+                u = parent[v]
+                path_flow = min(path_flow, residual[u][v])
+                v = u
+
+            # обновляем residual graph
+            v = sink
+            while v != source:
+                u = parent[v]
+                residual[u][v] -= path_flow
+                residual[v][u] += path_flow
+                v = u
+
+            max_flow += path_flow
+
+        return max_flow
+
 
 if __name__ == '__main__':
-    graph_8 = Graph(filename='graph_8.txt')
-    d8 = graph_8.dijkstra("A")
-    print(d8)
+    # graph_8 = Graph(filename='graph_8.txt')
+    # d8 = graph_8.dijkstra("A")
+    # print(d8)
 
-    graph_4 = Graph(filename='graph_4.txt')
-    d = graph_4.dijkstra('V2')
-    res = graph_4.reverse()
-    print(d)
-
-    dr = res.dijkstra('V2')
-    print(dr)
-
-    # graph_floyd = Graph(filename='graph_8.txt')
-    # vertices, dist, next_node = graph_floyd.floyd_warshall()
-    # print(vertices)
-    # print(dist)
-    # print(next_node)
-    #
-    # u = "A"
-    # v = "E"
-    #
-    # path = graph_floyd.get_path(u, v, vertices, next_node)
-    #
-    # print("Путь:", path)
-    # print("Длина:", dist[vertices.index(u)][vertices.index(v)])
-
-    # graph_negative = Graph(filename='graph_9.txt')
-    # cycle = graph_negative.bellman_ford_negative_cycle()
-    # print(cycle)
+    print('Потоки: ') # Сумма двух путей
+    graph_10 = Graph(filename='graph_10.txt')
+    print(graph_10.edmonds_karp("A", "C"))

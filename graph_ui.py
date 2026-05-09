@@ -1,5 +1,6 @@
 import sys
 import math
+from collections import deque
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt6.QtGui import QPainter, QPen, QBrush, QFont, QPolygonF
@@ -8,6 +9,8 @@ from PyQt6.uic import loadUi
 from graph import Graph
 from PyQt6.QtWidgets import QVBoxLayout
 from PyQt6.QtWidgets import QTableWidgetItem
+from PyQt6.QtCore import QTimer
+
 
 class GraphCanvas(QWidget):
     def __init__(self, graph):
@@ -25,6 +28,13 @@ class GraphCanvas(QWidget):
 
         # включаем отслеживание мыши
         self.setMouseTracking(True)
+
+        self.highlight_edges = set()
+        self.highlight_color = Qt.GlobalColor.red
+
+    def set_highlight_edges(self, edges):
+        self.highlight_edges = set(edges)
+        self.update()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -57,11 +67,10 @@ class GraphCanvas(QWidget):
             self.positions[node] = (x, y)
 
     def draw_edges(self, painter):
-        painter.setPen(QPen(Qt.GlobalColor.black, 2))
         for u in self.graph.graph:
             for v, w in self.graph.graph[u].items():
 
-                # избегаем дублирования
+                # избегаем дублирования в неориентированном графе
                 if not self.graph.directed and str(u) > str(v):
                     continue
 
@@ -69,16 +78,25 @@ class GraphCanvas(QWidget):
                     x1, y1 = self.positions[u]
                     x2, y2 = self.positions[v]
 
-                    # painter.drawLine(int(x1), int(y1), int(x2), int(y2))
-                    # направление линии
                     angle = math.atan2(y2 - y1, x2 - x1)
 
-                    # чтобы линия не заходила внутрь круга
+                    # чтобы линия не заходила в вершины
                     start_x = x1 + self.node_radius * math.cos(angle)
                     start_y = y1 + self.node_radius * math.sin(angle)
 
                     end_x = x2 - self.node_radius * math.cos(angle)
                     end_y = y2 - self.node_radius * math.sin(angle)
+
+                    # ПОДСВЕТКА BFS/DFS
+                    edge = (u, v)
+                    rev_edge = (v, u)
+
+                    if edge in self.highlight_edges or (
+                            not self.graph.directed and rev_edge in self.highlight_edges
+                    ):
+                        painter.setPen(QPen(self.highlight_color, 4))
+                    else:
+                        painter.setPen(QPen(Qt.GlobalColor.black, 2))
 
                     painter.drawLine(
                         int(start_x),
@@ -91,7 +109,7 @@ class GraphCanvas(QWidget):
                     if self.graph.directed:
                         self.draw_arrow(painter, start_x, start_y, end_x, end_y)
 
-                    # вес
+                    # вес ребра
                     if self.graph.weighted:
                         mx = (x1 + x2) / 2 + 15
                         my = (y1 + y2) / 2 + 15
@@ -173,29 +191,48 @@ class GraphVisualizer(QMainWindow):
         layout = QVBoxLayout(self.graphWidget)
         layout.setContentsMargins(0, 0, 0, 0)
 
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.animate_step)
+
+        self.anim_edges = []
+        self.anim_index = 0
+        self.anim_color = Qt.GlobalColor.red
+
         layout.addWidget(self.canvas)
 
         self.add_node_btn.clicked.connect(self.add_node)
+        self.delete_node_btn.clicked.connect(self.delete_node)
+        self.delete_edge_btn.clicked.connect(self.delete_edge)
+        self.add_edge_btn.clicked.connect(self.add_edge)
+        self.bfs_btn.clicked.connect(self.run_bfs)
+        self.dfs_btn.clicked.connect(self.run_dfs)
+        self.refresh_btn.clicked.connect(self.refresh_graph)
+        self.download_btn.clicked.connect(self.load_graph_from_file)
         self.update_table()
 
     def update_table(self):
+        self.tableWidget.clearContents()
+
         edges = []
+        used_vertices = set()
 
         for u in self.graph.graph:
             for v, w in self.graph.graph[u].items():
 
-                # избегаем дублей
                 if not self.graph.directed and str(u) > str(v):
                     continue
 
                 edges.append((u, v, w))
+                used_vertices.add(u)
+                used_vertices.add(v)
+
+        for v in self.graph.graph:
+            if v not in used_vertices:
+                edges.append((v, "", ""))
 
         self.tableWidget.setRowCount(len(edges))
         self.tableWidget.setColumnCount(3)
-
-        self.tableWidget.setHorizontalHeaderLabels(
-            ["From", "To", "Weight"]
-        )
+        self.tableWidget.setHorizontalHeaderLabels(["From", "To", "Weight"])
 
         for row, (u, v, w) in enumerate(edges):
             self.tableWidget.setItem(row, 0, QTableWidgetItem(str(u)))
@@ -219,10 +256,164 @@ class GraphVisualizer(QMainWindow):
 
             # очистить поле
             self.lineEdit_add_node.clear()
+            self.update_table()
 
         except Exception as e:
             print(e)
 
+    def add_edge(self):
+        u = self.lineEdit_add_edge_from.text().strip()
+        v = self.lineEdit_add_edge_to.text().strip()
+
+        if not u or not v:
+            return
+
+        try:
+            if not self.graph.weighted:
+                self.graph.add_arc(u, v)
+
+            else:
+                w_text = self.lineEdit_add_edge_weight.text().strip()
+
+                # если ничего не введено
+                if not w_text:
+                    w = 1
+                else:
+                    try:
+                        w = float(w_text) if '.' in w_text else int(w_text)
+                    except ValueError:
+                        w = 1
+
+                self.graph.add_arc(u, v, w)
+
+            # обновление UI
+            self.canvas.auto_layout()
+            self.canvas.update()
+            self.update_table()
+
+            # очистка полей (удобство)
+            self.lineEdit_add_edge_from.clear()
+            self.lineEdit_add_edge_to.clear()
+            self.lineEdit_add_edge_weight.clear()
+
+        except Exception as e:
+            print("Ошибка добавления ребра:", e)
+
+    def delete_edge(self):
+        u = self.lineEdit_delete_edge_from.text().strip()
+        v = self.lineEdit_delete_edge_to.text().strip()
+
+        if not u or not v:
+            return
+
+        try:
+            self.graph.remove_arc(u, v)
+
+            self.canvas.update()
+            self.update_table()
+
+        except Exception as e:
+            print("Ошибка удаления ребра:", e)
+
+    def delete_node(self):
+        node = self.lineEdit_delete_node.text().strip()
+
+        if not node:
+            return
+
+        try:
+            self.graph.remove_node(node)
+
+            # убрать из позиций canvas
+            if node in self.canvas.positions:
+                del self.canvas.positions[node]
+
+            self.canvas.auto_layout()
+            self.canvas.update()
+            self.update_table()
+
+        except Exception as e:
+            print("Ошибка удаления вершины:", e)
+
+    def run_bfs(self):
+        start = self.lineEdit_bfs.text().strip()
+        if not start:
+            return
+
+        self.anim_edges = self.graph.bfs_edges(start)
+        self.anim_index = 0
+        self.anim_color = Qt.GlobalColor.red
+
+        self.canvas.highlight_edges = set()
+        self.canvas.highlight_color = self.anim_color
+
+        self.timer.start(400)  # скорость анимации (мс)
+
+    def run_dfs(self):
+        start = self.lineEdit_dfs.text().strip()
+        if not start:
+            return
+
+        self.anim_edges = self.graph.dfs_edges(start)
+        self.anim_index = 0
+        self.anim_color = Qt.GlobalColor.blue
+
+        self.canvas.highlight_edges = set()
+        self.canvas.highlight_color = self.anim_color
+
+        self.timer.start(400)
+
+    def animate_step(self):
+        if self.anim_index >= len(self.anim_edges):
+            self.timer.stop()
+            return
+
+        edge = self.anim_edges[self.anim_index]
+        self.canvas.highlight_edges.add(edge)
+
+        self.canvas.update()
+        self.anim_index += 1
+
+    def refresh_graph(self):
+        if hasattr(self, "timer"):
+            self.timer.stop()
+
+        self.canvas.highlight_edges = set()
+        self.canvas.highlight_color = Qt.GlobalColor.black
+
+        self.canvas.positions.clear()
+        self.canvas.auto_layout()
+
+        self.canvas.update()
+        self.update_table()
+
+    def load_graph_from_file(self):
+        from PyQt6.QtWidgets import QFileDialog
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Выберите файл графа",
+            "",
+            "Text files (*.txt)"
+        )
+
+        if not file_path:
+            return
+
+        try:
+            self.graph = Graph(filename=file_path)
+
+            self.canvas.graph = self.graph
+            self.canvas.positions.clear()
+            self.canvas.auto_layout()
+
+            self.canvas.highlight_edges = set()
+            self.canvas.update()
+
+            self.update_table()
+
+        except Exception as e:
+            print("Ошибка загрузки графа:", e)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
