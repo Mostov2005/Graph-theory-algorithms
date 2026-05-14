@@ -537,9 +537,6 @@ class Graph(Generic[V, W]):
         dfs(start)
         return edges
 
-    from collections import deque
-    import copy
-
     def edmonds_karp(self, source, sink):
         if source not in self.graph or sink not in self.graph:
             raise ValueError("Источник или сток отсутствует")
@@ -601,10 +598,28 @@ class Graph(Generic[V, W]):
 
 
 if __name__ == '__main__':
-    # graph_8 = Graph(filename='graph_8.txt')
-    # d8 = graph_8.dijkstra("A")
-    # print(d8)
+    # graph = Graph(filename='graph_1.txt')
+    # graph.print_graph()
+    # graph.can_disconnect('A', 'G')
+    #
+    #
+    # # d8 = graph_8.dijkstra("A")
+    # # print(d8)
+    # # #
+    # print('Потоки: ') # Сумма двух путей
+    # graph_10 = Graph(filename='graph_10.txt')
+    # print(graph_10.edmonds_karp("A", "C"))
 
-    print('Потоки: ') # Сумма двух путей
-    graph_10 = Graph(filename='graph_10.txt')
-    print(graph_10.edmonds_karp("A", "C"))
+    graph_7 = Graph(filename='graph_7.txt')
+    mst, weight = graph_7.find_skeleton_krascal()
+    print("Минимальный каркас:")
+    for u, v, w in mst:
+        print(f"{u} — {v} ({w})")
+    print("Общий вес:", weight)
+
+    graph_8 = Graph(filename='graph_8.txt')
+    mst, weight = graph_8.find_skeleton_krascal()
+    print("Минимальный каркас:")
+    for u, v, w in mst:
+        print(f"{u} — {v} ({w})")
+    print("Общий вес:", weight)

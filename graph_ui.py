@@ -1,15 +1,16 @@
-import sys
 import math
-from collections import deque
+import sys
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
-from PyQt6.QtGui import QPainter, QPen, QBrush, QFont, QPolygonF
-from PyQt6.QtCore import Qt, QPointF
-from PyQt6.uic import loadUi
-from graph import Graph
-from PyQt6.QtWidgets import QVBoxLayout
-from PyQt6.QtWidgets import QTableWidgetItem
 from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import Qt, QPointF
+from PyQt6.QtGui import QPainter, QPen, QBrush, QFont, QPolygonF
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QTableWidgetItem
+from PyQt6.QtWidgets import QVBoxLayout
+from PyQt6.uic import loadUi
+
+from graph import Graph
 
 
 class GraphCanvas(QWidget):
@@ -259,7 +260,7 @@ class GraphVisualizer(QMainWindow):
             self.update_table()
 
         except Exception as e:
-            print(e)
+            self.show_error(self, f"Ошибка добавления вершины:\n{e}")
 
     def add_edge(self):
         u = self.lineEdit_add_edge_from.text().strip()
@@ -297,7 +298,7 @@ class GraphVisualizer(QMainWindow):
             self.lineEdit_add_edge_weight.clear()
 
         except Exception as e:
-            print("Ошибка добавления ребра:", e)
+            self.show_error(self, f"Ошибка добавления ребра:\n{e}")
 
     def delete_edge(self):
         u = self.lineEdit_delete_edge_from.text().strip()
@@ -313,7 +314,7 @@ class GraphVisualizer(QMainWindow):
             self.update_table()
 
         except Exception as e:
-            print("Ошибка удаления ребра:", e)
+            self.show_error(self, f"Ошибка удаления ребра:\n{e}")
 
     def delete_node(self):
         node = self.lineEdit_delete_node.text().strip()
@@ -333,11 +334,15 @@ class GraphVisualizer(QMainWindow):
             self.update_table()
 
         except Exception as e:
-            print("Ошибка удаления вершины:", e)
+            self.show_error(self, f"Ошибка удаления вершины:\n{e}")
 
     def run_bfs(self):
         start = self.lineEdit_bfs.text().strip()
         if not start:
+            return
+
+        if start not in self.graph.graph:
+            self.show_error(self, f"Вершина '{start}' не существует в графе")
             return
 
         self.anim_edges = self.graph.bfs_edges(start)
@@ -352,6 +357,10 @@ class GraphVisualizer(QMainWindow):
     def run_dfs(self):
         start = self.lineEdit_dfs.text().strip()
         if not start:
+            return
+
+        if start not in self.graph.graph:
+            self.show_error(self, f"Вершина '{start}' не существует в графе")
             return
 
         self.anim_edges = self.graph.dfs_edges(start)
@@ -415,8 +424,28 @@ class GraphVisualizer(QMainWindow):
         except Exception as e:
             print("Ошибка загрузки графа:", e)
 
+    def show_error(self, parent, text: str, title: str = "Ошибка"):
+        msg = QMessageBox(parent)
+        msg.setIcon(QMessageBox.Icon.Critical)
+        msg.setWindowTitle(title)
+        msg.setText(text)
+        msg.exec()
+
+
 if __name__ == "__main__":
+    # app = QApplication(sys.argv)
+
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
+    # app.setStyleSheet("""
+    # QLineEdit {
+    #     border: 1px solid #444;
+    #     border-radius: 10px;
+    #     padding: 5px;
+    #     background-color: #1e1e1e;
+    #     color: white;
+    # }
+    # """)
 
     graph = Graph(filename='graph_9.txt')
 
